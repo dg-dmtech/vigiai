@@ -3,6 +3,7 @@ const rtsp = require('rtsp-ffmpeg');
 const uri = process.env.STREAM_URL || 'rtsp://admin:eletriseg34263426@192.168.15.10:546/cam/realmonitor?channel=1&subtype=0'
 const stream = new rtsp.FFMpeg({ input: uri });
 const path = require("path");
+const fs = require("fs");
 console.log('🔗 Conectando ao stream:', uri);
 
 const detectPeople = require('./detectPeople');
