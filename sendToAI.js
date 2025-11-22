@@ -53,7 +53,7 @@ async function sendToAI(videoPath) {
             },
             ...images.map(img => ({
               type: "image_url",
-              image_url: `data:image/jpeg;base64,${img}`
+              image_url: { url: `data:image/jpeg;base64,${img}` }
             }))
           ]
         }
@@ -63,7 +63,7 @@ async function sendToAI(videoPath) {
 
   const data = await response.json();
   const description = data.choices?.[0]?.message?.content || "Sem descrição disponível";
-
+  console.log("🧠 Resposta da IA recebida.", JSON.stringify(data));
   // limpa frames temporários
   fs.rmSync(outputDir, { recursive: true, force: true });
 

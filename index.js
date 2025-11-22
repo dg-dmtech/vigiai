@@ -11,7 +11,7 @@ const sendToAI = require('./sendToAI');
 
 
 let lastDetection = 0;
-const SAMPLE_INTERVAL = 3000; // 1s entre verificações
+const SAMPLE_INTERVAL = 500; // 1s entre verificações
 
 stream.on('data', async (frame) => {
   const now = Date.now();
