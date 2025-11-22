@@ -14,7 +14,7 @@ let model = null;
 // ========================
 // DEBUG PATHS
 // ========================
-const debugRoot = path.join(__dirname, "debug");
+const debugRoot = path.join(process.env.RECORDING_DIR);
 const debugFrames = path.join(debugRoot, "frames");
 const debugLogs = path.join(debugRoot, "logs");
 const debugAnnotated = path.join(debugRoot, "annotated");
@@ -100,7 +100,6 @@ module.exports = async function detectPeople(frameBuffer) {
     const annotated = path.join(debugAnnotated, `${ts}.jpg`);
     await drawDetections(frameBuffer, people, annotated);
 
-    console.log(`🧠 [${ts}] Pessoas detectadas: ${people.length}`);
     return logData;
   } catch (err) {
     console.error("❌ detectPeople error:", err);
