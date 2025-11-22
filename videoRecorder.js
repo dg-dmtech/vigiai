@@ -14,7 +14,7 @@ function isRecording() {
 function startRecording(uri) {
   return new Promise((resolve, reject) => {
     const filename = `video_${Date.now()}.mp4`;
-    const filepath = path.join(__dirname, '../recordings', filename);
+    const filepath = path.join(__dirname, '/recordings', filename);
     if (!fs.existsSync(path.dirname(filepath))) fs.mkdirSync(path.dirname(filepath));
 
     recording = true;

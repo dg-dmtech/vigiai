@@ -7,11 +7,11 @@ console.log('🔗 Conectando ao stream:', uri);
 
 const detectPeople = require('./detectPeople');
 const { startRecording, isRecording } = require('./videoRecorder');
-const sendToAI = require('./sendToAI');
+//const sendToAI = require('./sendToAI');
 
 
 let lastDetection = 0;
-const SAMPLE_INTERVAL = 1000; // 1s entre verificações
+const SAMPLE_INTERVAL = 3000; // 1s entre verificações
 
 stream.on('data', async (frame) => {
   const now = Date.now();
@@ -25,8 +25,8 @@ stream.on('data', async (frame) => {
       const videoPath = await startRecording(uri);
       console.log('🎥 Vídeo salvo em:', videoPath);
 
-      const descricao = await sendToAI(videoPath);
-      console.log('🧠 Descrição da IA:', descricao);
+     // const descricao = await sendToAI(videoPath);
+      console.log('🧠 Descrição da IA:', 'Esta pessoa está fazendo tal coisa');
     }
   } catch (err) {
     console.error('Erro no processamento:', err);
