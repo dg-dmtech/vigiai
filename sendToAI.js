@@ -41,7 +41,7 @@ async function sendToAI(videoPath) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini", // modelo com visão
+      model: "gpt-5", // modelo com visão
       messages: [
         {
           role: "user",
@@ -63,10 +63,8 @@ async function sendToAI(videoPath) {
 
   const data = await response.json();
   const description = data.choices?.[0]?.message?.content || "Sem descrição disponível";
-  console.log("🧠 Resposta da IA recebida.", JSON.stringify(data));
   // limpa frames temporários
   fs.rmSync(outputDir, { recursive: true, force: true });
-
   return description;
 }
 
