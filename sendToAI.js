@@ -49,7 +49,9 @@ async function sendToAI(videoPath) {
             {
               type: "text",
               text: `Você é um especialista em vigilância. Analise os seguintes frames (1 por segundo) e descreva o que está acontecendo. 
-              Informe se há pessoas, ações suspeitas, objetos sendo manipulados ou comportamentos anormais.`
+              Informe se há ações suspeitas como vandalismo, roubo, furto, brigas, objetos sendo manipulados ou comportamentos anormais.
+              Caso não haja nada relevante, responda "Nenhuma atividade suspeita detectada".
+              `
             },
             ...images.map(img => ({
               type: "image_url",
