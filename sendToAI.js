@@ -67,7 +67,6 @@ async function sendToAI(videoPath) {
   // limpa frames temporários
   fs.rmSync(outputDir, { recursive: true, force: true });
 
-  console.log("🧠 Resposta da IA:", description);
   return description;
 }
 
