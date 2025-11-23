@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualização da Câmera</title>
+</head>
+<body style="text-align:center;font-family:Arial;padding:20px;">
+  <h3>🎥 Exibindo Câmera</h3>
+  <img id="stream" style="max-width:100%;border:1px solid #ccc;" />
+  <script>
+    const params = new URLSearchParams(location.search);
+    const stream = params.get('stream');
+    if (stream) document.getElementById('stream').src = stream;
+  </script>
+</body>
+</html>

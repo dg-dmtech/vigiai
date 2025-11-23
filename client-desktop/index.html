@@ -1,20 +1,169 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
-    />
-    <meta
-      http-equiv="X-Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
-    />
-    <title>Hello from Electron renderer!</title>
-  </head>
-  <body>
-    <h1>Hello from Electron renderer!</h1>
-    <p>👋</p>
-  </body>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Assistente de Conexão RTSP</title>
+  <style>
+    body { font-family: Arial; padding: 40px; text-align: center; }
+    input { width: 60%; padding: 10px; font-size: 16px; margin: 6px 0; }
+    button { padding: 10px 20px; font-size: 16px; margin: 10px 5px; cursor: pointer; }
+    table { border-collapse: collapse; margin: 30px auto; width: 90%; max-width: 900px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    caption { font-weight: bold; margin-bottom: 10px; font-size: 18px; }
+    tr:hover { background-color: #f9f9f9; cursor: pointer; }
+    code { background-color: #f7f7f7; padding: 2px 4px; border-radius: 4px; }
+    .step { display: none; }
+    .active { display: block; }
+    #stream { max-width: 100%; border: 1px solid #ccc; margin-top: 20px; }
+    /* Spinner simples */
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+  <h2>📹 Assistente de Conexão de Câmeras RTSP</h2>
+
+  <!-- Etapa 1 -->
+  <div id="step1" class="step active">
+    <h3>1️⃣ Informe o usuário e senha padrão das câmeras</h3>
+    <input id="user" placeholder="Usuário (ex: admin)" value="admin"><br>
+    <input id="pass" placeholder="Senha (ex: 12345)" type="password"><br>
+    <button id="next1">Avançar</button>
+  </div>
+
+  <!-- Etapa 2 -->
+  <div id="step2" class="step">
+    <h3>2️⃣ Selecione o modelo de câmera ou copie a URL</h3>
+    <input id="rtspUrl" placeholder="rtsp://usuario:senha@ip:porta/path"><br>
+    <button id="back2">Voltar</button>
+    <button id="next2">Testar Conexão</button>
+    <p id="status2"></p>
+
+    <table id="cameraTable">
+      <caption>🧾 Modelos de câmeras (clique para preencher)</caption>
+      <thead>
+        <tr>
+          <th>Fabricante / Firmware</th>
+          <th>Exemplo de URL RTSP</th>
+        </tr>
+      </thead>
+      <tbody id="cameraTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Etapa 3 -->
+  <div id="step3" class="step">
+    <h3>3️⃣ Visualização da Câmera</h3>
+    <button id="back3">Voltar</button>
+    <div id="status3">🔌 Tentando conectar...</div>
+    <div id="spinnerContainer"></div>
+    <img id="stream" alt="stream">
+  </div>
+
+  <script>
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    const userInput = document.getElementById('user');
+    const passInput = document.getElementById('pass');
+    const rtspInput = document.getElementById('rtspUrl');
+    const status2 = document.getElementById('status2');
+    const status3 = document.getElementById('status3');
+    const streamImg = document.getElementById('stream');
+    const spinnerContainer = document.getElementById('spinnerContainer');
+    const tableBody = document.getElementById('cameraTableBody');
+    const next2Btn = document.getElementById('next2');
+
+    const templates = [
+      { name: 'Dahua / Intelbras / Tecvoz / Greatek', path: '/cam/realmonitor?channel=1&subtype=0' },
+      { name: 'Hikvision / Multilaser', path: '/Streaming/Channels/101' },
+      { name: 'Provision / Luxvision', path: '/Streaming/Channels/1' },
+      { name: 'TP-Link / Tapo', path: '/stream1' },
+      { name: 'Foscam / Wanscam / genéricas', path: '/videoMain' },
+      { name: 'Amcrest / Reolink / Annke', path: '/cam/realmonitor?channel=1&subtype=0' },
+      { name: 'ONVIF (padrão universal)', path: '/Streaming/Channels/101' }
+    ];
+
+    function showStep(step) {
+      [step1, step2, step3].forEach(s => s.classList.remove('active'));
+      step.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('next1').addEventListener('click', () => {
+      const user = userInput.value.trim();
+      const pass = passInput.value.trim();
+      if (!user || !pass) return alert('Preencha usuário e senha.');
+      preencherTabela(user, pass);
+      showStep(step2);
+    });
+
+    document.getElementById('back2').addEventListener('click', () => showStep(step1));
+    document.getElementById('back3').addEventListener('click', () => {
+      next2Btn.disabled = false;
+      next2Btn.textContent = 'Testar Conexão';
+      spinnerContainer.innerHTML = '';
+      showStep(step2);
+    });
+
+    function preencherTabela(user, pass) {
+      tableBody.innerHTML = '';
+      templates.forEach(t => {
+        const url = `rtsp://${user}:${pass}@192.168.0.10:554${t.path}`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${t.name}</b></td>
+          <td><code>${url}</code></td>
+        `;
+        tr.addEventListener('click', () => {
+          rtspInput.value = url;
+          status2.textContent = '🔧 Exemplo carregado. Edite o IP se necessário antes de testar.';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        tableBody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('next2').addEventListener('click', async () => {
+      const rtspUrl = rtspInput.value.trim();
+      if (!rtspUrl) return alert('Selecione ou informe uma URL RTSP.');
+
+      next2Btn.disabled = true;
+      next2Btn.textContent = 'Conectando...';
+      status3.textContent = '🔌 Tentando conectar...';
+      spinnerContainer.innerHTML = '<div class="spinner"></div>';
+      showStep(step3);
+
+      try {
+        next2Btn.disabled = true;
+        const { url } = await window.cameraApi.startStream({ rtspUrl, id: 'cam1' });
+        streamImg.src = url;
+        spinnerContainer.innerHTML = '';
+        status3.textContent = `✅ Conectado à câmera:\n${rtspUrl}`;
+      } catch (err) {
+        spinnerContainer.innerHTML = '';
+        status3.textContent = `❌ Erro: ${err.message}`;
+        showStep(step2);
+      } finally {
+        next2Btn.disabled = false;
+        next2Btn.textContent = 'Testar Conexão';
+      }
+    });
+  </script>
+</body>
 </html>
