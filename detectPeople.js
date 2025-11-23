@@ -8,7 +8,7 @@ const path = require("path");
 // ========================
 // CONFIG
 // ========================
-const CONF_THRESHOLD = 0.35;
+const CONF_THRESHOLD = process.env.COCO_SSD_THRESHOLD || 0.35;
 let model = null;
 
 // ========================
