@@ -1,0 +1,15 @@
+{
+  "name": "vigiai",
+  "version": "1.0.0",
+  "description": "Captura dados rstp",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Douglas Oliveira",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^39.2.3"
+  }
+}
