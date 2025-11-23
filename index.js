@@ -1,41 +1,82 @@
-require('dotenv').config()
-const rtsp = require('rtsp-ffmpeg');
-const uri = process.env.STREAM_URL || 'rtsp://admin:eletriseg34263426@192.168.15.10:546/cam/realmonitor?channel=1&subtype=0'
-const stream = new rtsp.FFMpeg({ input: uri });
-const path = require("path");
-const fs = require("fs");
-console.log('🔗 Conectando ao stream:', uri);
+require("dotenv").config();
+const rtsp = require("rtsp-ffmpeg");
+const detectPeople = require("./detectPeople");
+const { startRecording, isRecording } = require("./videoRecorder");
+const sendToAI = require("./sendToAI");
+const DetectionEvent = require("./models/DetectionEvent");
+const Camera = require("./models/Camera");
+const { connectDB } = require("./db/mongo");
 
-const detectPeople = require('./detectPeople');
-const { startRecording, isRecording } = require('./videoRecorder');
-const sendToAI = require('./sendToAI');
+const SAMPLE_INTERVAL = process.env.SAMPLE_INTERVAL; 
+const lastDetections = {};
 
+function monitorCamera(cam) {
+  console.log(`📡 Iniciando monitoramento: ${cam.name}`);
+  const stream = new rtsp.FFMpeg({ input: cam.url });
 
-let lastDetection = 0;
-const SAMPLE_INTERVAL = 500; // 1s entre verificações
-const outputDir = path.join(__dirname, "debug/analises.txt");
-stream.on('data', async (frame) => {
-  const now = Date.now();
-  if (now - lastDetection < SAMPLE_INTERVAL) return;
-  lastDetection = now;
+  stream.on("data", async (frame) => {
+    const now = Date.now();
+    if (lastDetections[cam.name] && now - lastDetections[cam.name] < SAMPLE_INTERVAL) return;
+    lastDetections[cam.name] = now;
 
-  try {
-    const result = await detectPeople(frame);
-    if (result.has_people && !isRecording()) {
-      console.log('🚨 Pessoa detectada! Iniciando gravação...');
-      const videoPath = await startRecording(uri);
-      console.log('🎥 Vídeo salvo em:', videoPath);
+    try {
+      const result = await detectPeople(frame);
 
-      const descricao = await sendToAI(videoPath);
+      if (result.has_people && !isRecording(cam.name)) {
+        console.log(`🚨 [${cam.name}] Pessoa detectada! Iniciando gravação...`);
+        const videoPath = await startRecording(cam.url, cam.name);
+        console.log(`🎥 [${cam.name}] Vídeo salvo em: ${videoPath}`);
 
-    fs.appendFileSync(
-      outputDir,
-      `\n\nVideo: ${videoPath}\nDescrição da IA:\n${descricao}\n`,
-      "utf8"
-    );
+        const descricao = await sendToAI(videoPath);
 
+        // 🧠 Salva evento no MongoDB
+        await DetectionEvent.create({
+          camera: cam.name,
+          videoPath,
+          description: descricao,
+          peopleCount: result.count || 1,
+          confidence: result.people?.[0]?.confidence || null
+        });
+      }
+    } catch (err) {
+      console.error(`❌ Erro no processamento da câmera ${cam.name}:`, err.message);
     }
-  } catch (err) {
-    console.error('Erro no processamento:', err);
+  });
+
+  return stream
+}
+
+const activeStreams = new Map();
+
+async function reloadCameras() {
+  const cameras = await Camera.find();
+  for (const cam of cameras) {
+    if (!activeStreams.has(cam._id.toString())) {
+      console.log(`🆕 Nova câmera detectada: ${cam.name}`);
+      const stream = monitorCamera(cam);
+      activeStreams.set(cam._id.toString(), stream);
+    }
   }
-});
+
+  // Verifica se alguma câmera foi desativada
+  for (const [id, stream] of activeStreams) {
+    const stillActive = cameras.some(c => c._id.toString() === id);
+    if (!stillActive) {
+      console.log(`🛑 Câmera desativada, encerrando stream...`);
+      stream.stop(); // precisa expor stop() no monitorCamera
+      activeStreams.delete(id);
+    }
+  }
+}
+
+// Verifica novas câmeras a cada 60 segundos
+setInterval(reloadCameras, process.env.RELOAD_INTERVAL || 60000);
+
+(async () => {
+  await connectDB();
+  const cameras = await Camera.find({ isActive: true });
+  console.log(`📷 ${cameras.length} câmeras encontradas.`);
+  for (const cam of cameras) {
+    monitorCamera(cam);
+  }
+})();

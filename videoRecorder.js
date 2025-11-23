@@ -20,7 +20,7 @@ function startRecording(uri) {
     recording = true;
     ffmpeg(uri)
       .inputOptions('-rtsp_transport', 'tcp')
-      .duration(10)
+      .duration(process.env.RECORD_DURATION || 10)
       .output(filepath)
       .on('end', () => {
         recording = false;
