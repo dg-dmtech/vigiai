@@ -5,7 +5,8 @@ const CameraSchema = new mongoose.Schema({
   url: { type: String, required: true },
   location: String,
   isActive: { type: Boolean, default: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  whatsappNotifyNumber: String
 });
 
 module.exports = mongoose.model("Camera", CameraSchema);

@@ -6,6 +6,7 @@ const sendToAI = require("./sendToAI");
 const DetectionEvent = require("./models/DetectionEvent");
 const Camera = require("./models/Camera");
 const { connectDB } = require("./db/mongo");
+const sentWhatsAppMessage = require("./sentWhatsAppMessage");
 
 const SAMPLE_INTERVAL = process.env.SAMPLE_INTERVAL; 
 const lastDetections = {};
@@ -28,9 +29,7 @@ function monitorCamera(cam) {
         console.log(`🎥 [${cam.name}] Vídeo salvo em: ${videoPath}`);
 
         const iaResponse = await sendToAI(videoPath, cam);
-
-        // 🧠 Salva evento no MongoDB
-        await DetectionEvent.create({
+        const event = await DetectionEvent.create({
           camera: cam.name,
           videoPath,
           description: iaResponse.description,
@@ -38,7 +37,8 @@ function monitorCamera(cam) {
           cocoSsdPeopleCount: result.peopleCount || 1,
           gptPeopleCount: iaResponse.peopleCount || 0,
           confidence: result.people?.[0]?.confidence || null
-        });
+        })
+        await sentWhatsAppMessage(event._id, cam, iaResponse);
       }
     } catch (err) {
       console.error(`❌ Erro no processamento da câmera ${cam.name}:`, err.message);
