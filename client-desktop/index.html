@@ -2,91 +2,203 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Assistente de Conexão RTSP</title>
+  <title>Assistente de Conexão RTSP — dmtech</title>
   <style>
-    body { font-family: Arial; padding: 40px; text-align: center; }
-    input { width: 60%; padding: 10px; font-size: 16px; margin: 6px 0; }
-    button { padding: 10px 20px; font-size: 16px; margin: 10px 5px; cursor: pointer; }
-    table { border-collapse: collapse; margin: 30px auto; width: 90%; max-width: 900px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f4f4f4; }
-    caption { font-weight: bold; margin-bottom: 10px; font-size: 18px; }
-    tr:hover { background-color: #f9f9f9; cursor: pointer; }
-    code { background-color: #f7f7f7; padding: 2px 4px; border-radius: 4px; }
+    :root {
+      --primary: #00b8a9; /* Turquesa principal */
+      --secondary: #ffb300; /* Amarelo ouro */
+      --dark: #0b0b0b;
+      --light: #f4f4f4;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, var(--dark) 0%, #111 100%);
+      color: var(--light);
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 100px;
+    }
+
+    h2 {
+      color: var(--primary);
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      color: var(--secondary);
+    }
+
+    input {
+      width: 60%;
+      padding: 12px;
+      font-size: 16px;
+      margin: 8px 0;
+      border-radius: 30px;
+      border: 2px solid var(--primary);
+      outline: none;
+      transition: 0.3s;
+      background: #111;
+      color: var(--light);
+    }
+
+    input:focus {
+      border-color: var(--secondary);
+      box-shadow: 0 0 10px var(--secondary);
+    }
+
+    button {
+      padding: 12px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 25px;
+      cursor: pointer;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: var(--secondary);
+      color: #111;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 30px auto;
+      width: 90%;
+      max-width: 900px;
+      color: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th {
+      background-color: var(--primary);
+      padding: 12px;
+    }
+
+    td {
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid #222;
+      padding: 10px;
+    }
+
+    tr:hover {
+      background: rgba(0, 184, 169, 0.15);
+      cursor: pointer;
+    }
+
+    code {
+      background-color: #111;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: var(--secondary);
+    }
+
     .step { display: none; }
     .active { display: block; }
-    #stream { max-width: 100%; border: 1px solid #ccc; margin-top: 20px; }
+
+    #viewer {
+      position: relative;
+      margin-top: 20px;
+      display: inline-block;
+      border-radius: 12px;
+      overflow: hidden;
+      width: 640px;
+      height: 360px;
+      background: #000;
+      box-shadow: 0 0 20px rgba(0, 184, 169, 0.3);
+    }
+
+    #stream {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+    }
+
+    #status4 {
+      margin-top: 10px;
+      font-weight: 500;
+      color: var(--light);
+    }
+
     .spinner {
       border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
+      border-top: 4px solid var(--primary);
       border-radius: 50%;
-      width: 32px;
-      height: 32px;
+      width: 50px;
+      height: 50px;
       animation: spin 1s linear infinite;
-      display: inline-block;
-      margin-left: 10px;
-      vertical-align: middle;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
+
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .wizard-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #0b0b0b;
+      border-top: 2px solid var(--primary);
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.4);
+    }
   </style>
 </head>
 
 <body>
   <h2>📹 Assistente de Conexão de Câmeras RTSP</h2>
 
-  <!-- Etapa 1 -->
   <div id="step1" class="step active">
-    <h3>1️⃣ Informe o usuário e senha padrão das câmeras</h3>
+    <h3>1️Informe o usuário e senha padrão das câmeras</h3>
     <input id="user" placeholder="Usuário (ex: admin)" value="admin"><br>
-    <input id="pass" placeholder="Senha (ex: 12345)" value="eletriseg34263426" type="password"><br>
-    <button id="next1">Avançar</button>
+    <input id="pass" placeholder="Senha (ex: 12345)" type="password"><br>
   </div>
 
-  <!-- Etapa 2 -->
   <div id="step2" class="step">
-    <h3>2️⃣ Informe o IP e a porta RTSP da câmera</h3>
+    <h3>2️Informe o IP e a porta RTSP da câmera</h3>
     <input id="ip" placeholder="IP (ex: 192.168.15.10)" value="192.168.15.10"><br>
-    <input id="port" placeholder="Porta RTSP (ex: 546)" value="546"><br>
-    <button id="back2">Voltar</button>
-    <button id="next2">Avançar</button>
+    <input id="port" placeholder="Porta RTSP (ex: 554)" value="546"><br>
   </div>
 
-  <!-- Etapa 3 -->
   <div id="step3" class="step">
-    <h3>3️⃣ Selecione o modelo de câmera ou copie a URL</h3>
+    <h3>3️Informe a url de conexão com a camera ou clique no modelo na tabela abaixo.</h3>
     <input id="rtspUrl" placeholder="rtsp://usuario:senha@ip:porta/path"><br>
-    <button id="back3">Voltar</button>
-    <button id="next3">Testar Conexão</button>
     <p id="status3a"></p>
-
     <table id="cameraTable">
-      <caption>🧾 Modelos de câmeras (clique para preencher)</caption>
-      <thead>
-        <tr>
-          <th>Fabricante / Firmware</th>
-          <th>Exemplo de URL RTSP</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Fabricante / Firmware</th><th>Clique na marca da sua camera para preencher e altere se for necessário</th></tr></thead>
       <tbody id="cameraTableBody"></tbody>
     </table>
   </div>
 
-  <!-- Etapa 4 -->
   <div id="step4" class="step">
-    <h3>4️⃣ Visualização da Câmera</h3>
-    <button id="back4">Voltar</button>
+    <h3>4️ Visualização da Câmera</h3>
+    <div id="viewer">
+      <div id="spinner" class="spinner"></div>
+      <img id="stream" alt="stream">
+    </div>
     <div id="status4">🔌 Tentando conectar...</div>
-    <div id="spinnerContainer"></div>
-    <img id="stream" alt="stream">
+  </div>
+
+  <div class="wizard-footer">
+    <button id="backBtn">Voltar</button>
+    <button id="nextBtn">Avançar</button>
   </div>
 
   <script>
-    const [step1, step2, step3, step4] = [
-      document.getElementById('step1'),
-      document.getElementById('step2'),
-      document.getElementById('step3'),
-      document.getElementById('step4')
-    ];
+    const steps = [step1, step2, step3, step4];
+    let currentStep = 0;
 
     const userInput = document.getElementById('user');
     const passInput = document.getElementById('pass');
@@ -94,10 +206,11 @@
     const portInput = document.getElementById('port');
     const rtspInput = document.getElementById('rtspUrl');
     const tableBody = document.getElementById('cameraTableBody');
-    const status4 = document.getElementById('status4');
-    const spinnerContainer = document.getElementById('spinnerContainer');
     const streamImg = document.getElementById('stream');
-    const next3Btn = document.getElementById('next3');
+    const spinner = document.getElementById('spinner');
+    const status4 = document.getElementById('status4');
+    const nextBtn = document.getElementById('nextBtn');
+    const backBtn = document.getElementById('backBtn');
 
     const templates = [
       { name: 'Dahua / Intelbras / Tecvoz / Greatek', path: '/cam/realmonitor?channel=1&subtype=0' },
@@ -109,42 +222,16 @@
       { name: 'ONVIF (padrão universal)', path: '/Streaming/Channels/101' }
     ];
 
-    function showStep(step) {
-      [step1, step2, step3, step4].forEach(s => s.classList.remove('active'));
-      step.classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    function showStep(index) {
+      steps.forEach(s => s.classList.remove('active'));
+      steps[index].classList.add('active');
+      currentStep = index;
+      backBtn.style.display = index === 0 ? 'none' : 'inline-block';
+      nextBtn.textContent = index === steps.length - 1 ? 'Finalizar' : 'Avançar';
+      status4.textContent = '';
+      spinner.style.display = 'none';
+      streamImg.style.display = 'none';
     }
-
-    document.getElementById('next1').addEventListener('click', () => {
-      const user = userInput.value.trim();
-      const pass = passInput.value.trim();
-      if (!user || !pass) return alert('Preencha usuário e senha.');
-      showStep(step2);
-    });
-
-    document.getElementById('back2').addEventListener('click', () => {
-        
-        showStep(step1)
-    });
-    document.getElementById('back3').addEventListener('click', () => {
-        
-        showStep(step2)
-    
-    });
-    document.getElementById('back4').addEventListener('click', () => {
-      next3Btn.disabled = false;
-      next3Btn.textContent = 'Testar Conexão';
-      spinnerContainer.innerHTML = '';
-      showStep(step3);
-    });
-
-    document.getElementById('next2').addEventListener('click', () => {
-      const ip = ipInput.value.trim();
-      const port = portInput.value.trim();
-      if (!ip || !port) return alert('Informe IP e porta RTSP.');
-      preencherTabela(userInput.value, passInput.value, ip, port);
-      showStep(step3);
-    });
 
     function preencherTabela(user, pass, ip, port) {
       tableBody.innerHTML = '';
@@ -152,39 +239,56 @@
         const url = `rtsp://${user}:${pass}@${ip}:${port}${t.path}&rtsp_transport=tcp`;
         const tr = document.createElement('tr');
         tr.innerHTML = `<td><b>${t.name}</b></td><td><code>${url}</code></td>`;
-        tr.addEventListener('click', () => {
+        tr.onclick = () => {
           rtspInput.value = url;
-          document.getElementById('status3a').textContent = '🔧 Exemplo carregado. Edite se necessário antes de testar.';
-        });
+        };
         tableBody.appendChild(tr);
       });
     }
 
-    document.getElementById('next3').addEventListener('click', async () => {
+    async function tryConnect() {
       const rtspUrl = rtspInput.value.trim();
       if (!rtspUrl) return alert('Selecione ou informe uma URL RTSP.');
 
-      next3Btn.disabled = true;
-      next3Btn.textContent = 'Conectando...';
-      status4.textContent = '🔌 Tentando conectar...';
-      spinnerContainer.innerHTML = '<div class="spinner"></div>';
-      showStep(step4);
+      spinner.style.display = 'block';
+      streamImg.style.display = 'none';
 
       try {
-        spinnerContainer.innerHTML = 'Nenhuma transmissão recebida.';
         const { url } = await window.cameraApi.startStream({ rtspUrl, id: 'cam1' });
-        spinnerContainer.innerHTML = '';
+        streamImg.onload = () => {
+          spinner.style.display = 'none';
+          streamImg.style.display = 'block';
+        };
+        streamImg.onerror = () => {
+          spinner.style.display = 'none';
+          status4.textContent = '❌ Erro ao carregar stream. Verifique IP, porta ou credenciais.';
+        };
         streamImg.src = url;
       } catch (err) {
-        spinnerContainer.innerHTML = '';
-        status4.textContent = `❌ Erro: ${err.message}`;
-        showStep(step3);
-      } finally {
-        next3Btn.disabled = false;
-        next3Btn.textContent = 'Testar Conexão';
-        status4.textContent = ''
+        spinner.style.display = 'none';
+        status4.textContent = `❌ Falha: ${err.message}`;
       }
-    });
+    }
+
+    nextBtn.onclick = async () => {
+      if (currentStep === 0) {
+        if (!userInput.value || !passInput.value) return alert('Preencha usuário e senha.');
+        showStep(1);
+      } else if (currentStep === 1) {
+        if (!ipInput.value || !portInput.value) return alert('Informe IP e porta RTSP.');
+        preencherTabela(userInput.value, passInput.value, ipInput.value, portInput.value);
+        showStep(2);
+      } else if (currentStep === 2) {
+        if (!rtspInput.value.trim()) return alert('Selecione ou informe uma URL RTSP.');
+        showStep(3);
+        await tryConnect();
+      } else {
+        window.close();
+      }
+    };
+
+    backBtn.onclick = () => showStep(currentStep - 1);
+    showStep(0);
   </script>
 </body>
 </html>
