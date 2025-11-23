@@ -33,7 +33,7 @@ module.exports = async function sentWhatsAppMessage(eventId, cam, iaResponse) {
         return SentWhatsAppMessage.create({ camId: cam._id, eventId, sentAt: new Date() })
       })
       .catch((error) => {
-        console.error(`Erro ao enviar a mensagem para ${am.whatsappNotifyNumber}:`);
+        console.error(`Erro ao enviar a mensagem para ${cam.whatsappNotifyNumber}:`, error);
       });
   }
 
