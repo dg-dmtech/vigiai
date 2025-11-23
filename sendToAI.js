@@ -58,7 +58,8 @@ async function sendToAI(videoPath, cam) {
               Se houver alguma caracteristica especifica sobre esta camera, observe também: 
               ${cam.customPrompt || "Nenhuma caracteristica especifica informada."}
                 Retorne sua resposta em JSON no formato:
-              { "description": "<texto>", "suspect": true|false, "peopleCount": <número de pessoas> }
+              { "description": "<texto>", "suspect": true|false, "peopleCount": <número de pessoas> }.
+               Se não houver pessoas, retorne "suspect": false, "peopleCount": 0, description: "Não há fluxo de pessoas no local".
               `
             },
             ...images.map(img => ({
