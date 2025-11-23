@@ -24,8 +24,8 @@ async function extractFrames(videoPath, outputDir) {
   });
 }
 
-async function sendToAI(videoPath) {
-  const outputDir = path.join(__dirname, "frames_temp");
+async function sendToAI(videoPath, cam) {
+  const outputDir = path.join(__dirname, "temp_frames", "cam_".concat(cam?.id), Date.now().toString());
   const frames = await extractFrames(videoPath, outputDir);
 
   // limitar a no máximo 10 frames (caso o vídeo seja maior)
@@ -50,7 +50,15 @@ async function sendToAI(videoPath) {
               type: "text",
               text: `Você é um especialista em vigilância. Analise os seguintes frames (1 por segundo) e descreva o que está acontecendo. 
               Informe se há ações suspeitas como vandalismo, roubo, furto, brigas, objetos sendo manipulados ou comportamentos anormais.
-              Caso não haja nada relevante, responda "Nenhuma atividade suspeita detectada".
+              Considere o id da câmera: ${cam.id}, para ver se não se trata da mesma analise.
+              Veja também o horario: ${new Date().toLocaleString()} e observe se não se trata da continuação de um evento anterior.
+              Tente descrever detalhes relevantes como número de pessoas, ações específicas e contexto geral.
+              Analise também se a pessoa está armada ou carregando objetos suspeitos.
+              Seja detalhado mas objetivo em sua descrição, sem especulações desnecessárias.
+              Se houver alguma caracteristica especifica sobre esta camera, observe também: 
+              ${cam.customPrompt || "Nenhuma caracteristica especifica informada."}
+                Retorne sua resposta em JSON no formato:
+              { "description": "<texto>", "suspect": true|false, "peopleCount": <número de pessoas> }
               `
             },
             ...images.map(img => ({
@@ -64,10 +72,24 @@ async function sendToAI(videoPath) {
   });
 
   const data = await response.json();
-  const description = data.choices?.[0]?.message?.content || "Sem descrição disponível";
+ // tenta extrair JSON diretamente da resposta
+  let result = { description: "Sem descrição disponível", suspect: false };
+
+  try {
+    // tenta fazer parse direto da resposta da IA
+    const parsed = JSON.parse(data.choices?.[0]?.message?.content);
+    result = parsed;
+  } catch {
+    // fallback: detecta palavras suspeitas manualmente
+    const text = data.choices?.[0]?.message?.content?.toLowerCase() || "";
+    const suspectKeywords = ["suspeit", "roubo", "furt", "vandal", "briga", "arma", "violên"];
+    const isSuspect = suspectKeywords.some(k => text.includes(k));
+    result = { description: text, suspect: isSuspect };
+  }
+
   // limpa frames temporários
   fs.rmSync(outputDir, { recursive: true, force: true });
-  return description;
+  return result;
 }
 
 module.exports = sendToAI;

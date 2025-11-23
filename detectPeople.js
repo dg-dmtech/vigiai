@@ -82,6 +82,7 @@ module.exports = async function detectPeople(frameBuffer) {
       (p) => p.class === "person" && p.score > CONF_THRESHOLD
     );
 
+
     // ========================
     // DEBUG E LOGS
     // ========================

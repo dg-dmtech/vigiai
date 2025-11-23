@@ -27,14 +27,16 @@ function monitorCamera(cam) {
         const videoPath = await startRecording(cam.url, cam.name);
         console.log(`🎥 [${cam.name}] Vídeo salvo em: ${videoPath}`);
 
-        const descricao = await sendToAI(videoPath);
+        const iaResponse = await sendToAI(videoPath, cam);
 
         // 🧠 Salva evento no MongoDB
         await DetectionEvent.create({
           camera: cam.name,
           videoPath,
-          description: descricao,
-          peopleCount: result.count || 1,
+          description: iaResponse.description,
+          suspect: iaResponse.suspect,
+          cocoSsdPeopleCount: result.peopleCount || 1,
+          gptPeopleCount: iaResponse.peopleCount || 0,
           confidence: result.people?.[0]?.confidence || null
         });
       }
@@ -70,7 +72,7 @@ async function reloadCameras() {
 }
 
 // Verifica novas câmeras a cada 60 segundos
-setInterval(reloadCameras, process.env.RELOAD_INTERVAL || 60000);
+setInterval(reloadCameras, process.env.RELOAD_CAM_INTERVAL || 60000);
 
 (async () => {
   await connectDB();

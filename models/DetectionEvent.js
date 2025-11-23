@@ -5,8 +5,10 @@ const DetectionEventSchema = new mongoose.Schema({
   videoPath: String,
   description: String,
   detectedAt: { type: Date, default: Date.now },
-  peopleCount: Number,
-  confidence: Number
+  cocoSsdPeopleCount: Number,
+  gptPeopleCount: Number,
+  confidence: Number,
+  suspect: Boolean
 });
 
 module.exports = mongoose.model("DetectionEvent", DetectionEventSchema);
