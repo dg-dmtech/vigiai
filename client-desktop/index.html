@@ -124,7 +124,7 @@
     function preencherTabela(user, pass) {
       tableBody.innerHTML = '';
       templates.forEach(t => {
-        const url = `rtsp://${user}:${pass}@192.168.0.10:554${t.path}`;
+        const url = `rtsp://${user}:${pass}@192.168.15.10:546${t.path}&rtsp_transport=tcp`;
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><b>${t.name}</b></td>
