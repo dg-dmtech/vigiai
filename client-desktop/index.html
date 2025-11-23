@@ -123,16 +123,15 @@
     });
 
     document.getElementById('back2').addEventListener('click', () => {
-        streamImg?.src = url;
+        
         showStep(step1)
     });
     document.getElementById('back3').addEventListener('click', () => {
-        streamImg?.src = url;
+        
         showStep(step2)
     
     });
     document.getElementById('back4').addEventListener('click', () => {
-      streamImg?.src = url;
       next3Btn.disabled = false;
       next3Btn.textContent = 'Testar Conexão';
       spinnerContainer.innerHTML = '';
@@ -172,9 +171,10 @@
       showStep(step4);
 
       try {
+        spinnerContainer.innerHTML = 'Nenhuma transmissão recebida.';
         const { url } = await window.cameraApi.startStream({ rtspUrl, id: 'cam1' });
-        streamImg.src = url;
         spinnerContainer.innerHTML = '';
+        streamImg.src = url;
       } catch (err) {
         spinnerContainer.innerHTML = '';
         status4.textContent = `❌ Erro: ${err.message}`;
